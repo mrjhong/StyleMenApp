@@ -106,3 +106,18 @@ export const styleFitness = StyleSheet.create({
     borderBottomColor: '#e0e0e0',
   },
 });
+
+export const aspect = StyleSheet.create({
+  white: {
+    color: 'white',
+  },
+  gray500: {
+    color: '#9ea2acff',
+  },
+  amber400: {
+    color: '#fbbf24',
+  },
+  red: {
+    color: 'red',
+  },
+});
