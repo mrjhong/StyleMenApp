@@ -1,0 +1,260 @@
+import React, { useState } from 'react';
+import { View, ScrollView, StyleSheet, Alert } from 'react-native';
+import { Text, Button, Card, Chip, ActivityIndicator, useTheme } from 'react-native-paper';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { generateOutfit } from '../services/geminiService';
+
+export default function OutfitGeneratorScreen() {
+  const theme = useTheme();
+  
+  // Estados
+  const [selectedStyle, setSelectedStyle] = useState(null);
+  const [selectedOccasion, setSelectedOccasion] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [generatedOutfits, setGeneratedOutfits] = useState([]);
+
+  // Opciones
+  const styles_options = [
+    { label: 'Casual', icon: 'tshirt-crew', value: 'casual' },
+    { label: 'Urbano', icon: 'city', value: 'urbano' },
+    { label: 'Formal', icon: 'tie', value: 'formal' },
+  ];
+
+  const occasions = [
+    { label: 'Trabajo', value: 'trabajo' },
+    { label: 'Cita', value: 'cita' },
+    { label: 'Evento', value: 'evento' },
+    { label: 'Día Casual', value: 'casual' },
+    { label: 'Gym', value: 'gym' },
+  ];
+
+  const handleGenerate = async () => {
+    if (!selectedStyle || !selectedOccasion) {
+      Alert.alert('Faltan datos', 'Por favor selecciona un estilo y una ocasión');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await generateOutfit(selectedStyle, selectedOccasion);
+      setGeneratedOutfits(result.outfits);
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo generar el outfit. Intenta de nuevo.');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <ScrollView style={localStyles.container}>
+      <View style={localStyles.content}>
+        
+        {/* Selección de Estilo */}
+        <View style={localStyles.section}>
+          <Text style={localStyles.sectionTitle}>1. Selecciona tu estilo</Text>
+          <View style={localStyles.chipContainer}>
+            {styles_options.map((style) => (
+              <Card
+                key={style.value}
+                style={[
+                  localStyles.styleCard,
+                  selectedStyle === style.value && { 
+                    backgroundColor: theme.colors.accent,
+                    elevation: 4
+                  }
+                ]}
+                onPress={() => setSelectedStyle(style.value)}
+              >
+                <Card.Content style={localStyles.styleCardContent}>
+                  <MaterialCommunityIcons 
+                    name={style.icon} 
+                    size={32} 
+                    color={selectedStyle === style.value ? '#fff' : theme.colors.primary} 
+                  />
+                  <Text style={[
+                    localStyles.styleLabel,
+                    selectedStyle === style.value && { color: '#fff', fontWeight: 'bold' }
+                  ]}>
+                    {style.label}
+                  </Text>
+                </Card.Content>
+              </Card>
+            ))}
+          </View>
+        </View>
+
+        {/* Selección de Ocasión */}
+        <View style={localStyles.section}>
+          <Text style={localStyles.sectionTitle}>2. ¿Para qué ocasión?</Text>
+          <View style={localStyles.chipContainer}>
+            {occasions.map((occasion) => (
+              <Chip
+                key={occasion.value}
+                selected={selectedOccasion === occasion.value}
+                onPress={() => setSelectedOccasion(occasion.value)}
+                style={[
+                  localStyles.chip,
+                  selectedOccasion === occasion.value && { 
+                    backgroundColor: theme.colors.accent 
+                  }
+                ]}
+                textStyle={selectedOccasion === occasion.value && { color: '#fff' }}
+              >
+                {occasion.label}
+              </Chip>
+            ))}
+          </View>
+        </View>
+
+        {/* Botón Generar */}
+        <Button
+          mode="contained"
+          onPress={handleGenerate}
+          loading={loading}
+          disabled={loading}
+          style={localStyles.generateButton}
+          buttonColor={theme.colors.primary}
+          contentStyle={{ paddingVertical: 8 }}
+          labelStyle={{ fontSize: 16, fontWeight: 'bold' }}
+        >
+          {loading ? 'Generando...' : 'Generar Outfits ✨'}
+        </Button>
+
+        {/* Resultados */}
+        {loading && (
+          <View style={localStyles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.colors.accent} />
+            <Text style={localStyles.loadingText}>
+              La IA está creando tus outfits perfectos...
+            </Text>
+          </View>
+        )}
+
+        {generatedOutfits.length > 0 && !loading && (
+          <View style={localStyles.resultsSection}>
+            <Text style={localStyles.sectionTitle}>Tus Outfits Recomendados</Text>
+            {generatedOutfits.map((outfit, index) => (
+              <Card key={index} style={localStyles.outfitCard}>
+                <Card.Content>
+                  <Text style={localStyles.outfitTitle}>Opción {index + 1}</Text>
+                  <Text style={localStyles.outfitDescription}>{outfit.description}</Text>
+                  
+                  <View style={localStyles.itemsList}>
+                    {outfit.items.map((item, idx) => (
+                      <View key={idx} style={localStyles.itemRow}>
+                        <MaterialCommunityIcons name="check-circle" size={20} color={theme.colors.accent} />
+                        <Text style={localStyles.itemText}>{item}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  {outfit.shopLinks && (
+                    <Button 
+                      mode="outlined" 
+                      style={localStyles.shopButton}
+                      onPress={() => Alert.alert('Próximamente', 'Links de compra en desarrollo')}
+                    >
+                      Ver prendas disponibles
+                    </Button>
+                  )}
+                </Card.Content>
+              </Card>
+            ))}
+          </View>
+        )}
+      </View>
+    </ScrollView>
+  );
+}
+
+const localStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  content: {
+    padding: 16,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#1a1a1a',
+  },
+  chipContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  chip: {
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  styleCard: {
+    width: '30%',
+    marginBottom: 12,
+    marginRight: '3%',
+  },
+  styleCardContent: {
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  styleLabel: {
+    marginTop: 8,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  generateButton: {
+    marginVertical: 16,
+    borderRadius: 12,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: '#757575',
+  },
+  resultsSection: {
+    marginTop: 16,
+  },
+  outfitCard: {
+    marginBottom: 16,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  outfitTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#1a1a1a',
+  },
+  outfitDescription: {
+    fontSize: 14,
+    color: '#757575',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  itemsList: {
+    marginBottom: 16,
+  },
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  itemText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#1a1a1a',
+  },
+  shopButton: {
+    marginTop: 8,
+  },
+});
