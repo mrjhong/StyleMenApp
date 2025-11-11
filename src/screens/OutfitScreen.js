@@ -3,6 +3,8 @@ import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import OutfitGeneratorScreen from './OutfitGeneratorScreen';
 import OutfitAnalyzerScreen from './OutfitAnalyzerScreen';
+import { Button } from 'react-native-paper';
+import { aspect, stylesOutfitScreen as styles } from '../styles/styleFintnes';
 
 export default function OutfitScreen() {
   const theme = useTheme();
@@ -12,45 +14,68 @@ export default function OutfitScreen() {
     <View style={styles.container}>
       {/* Tabs personalizados */}
       <View style={[styles.tabsContainer, { backgroundColor: theme.colors.surface }]}>
-        <TouchableOpacity
+        <Button
           style={[
-            styles.tab,
-            activeTab === 'generator' && { 
-              backgroundColor: theme.colors.accent,
-              borderBottomWidth: 3,
-              borderBottomColor: theme.colors.accent 
+            styles.tabButton,
+            activeTab === 'generator'
+              ? styles.activeButton
+              : styles.inactiveButton,
+            {
+              backgroundColor: activeTab === 'generator'
+                ? aspect.black.color
+                : aspect.amber400.color,
+         
             }
           ]}
           onPress={() => setActiveTab('generator')}
         >
           <Text style={[
             styles.tabText,
-            activeTab === 'generator' && styles.tabTextActive
+            activeTab === 'generator'
+              ? styles.activeTabText
+              : styles.inactiveTabText,
+            {
+              color: activeTab === 'generator'
+                ? '#fff'
+                : '#000',
+            }
           ]}>
             Generar Outfit
           </Text>
-        </TouchableOpacity>
+        </Button>
 
-        <TouchableOpacity
+        <Button
           style={[
-            styles.tab,
-            activeTab === 'analyzer' && { 
-              backgroundColor: theme.colors.accent,
-              borderBottomWidth: 3,
-              borderBottomColor: theme.colors.accent 
+            styles.tabButton,
+            activeTab === 'analyzer'
+              ? styles.activeButton
+              : styles.inactiveButton,
+            {
+              backgroundColor: activeTab === 'analyzer'
+                ? aspect.black.color
+                : aspect.amber400.color,
+          
             }
           ]}
           onPress={() => setActiveTab('analyzer')}
         >
           <Text style={[
             styles.tabText,
-            activeTab === 'analyzer' && styles.tabTextActive
+            activeTab === 'analyzer'
+              ? styles.activeTabText
+              : styles.inactiveTabText,
+            {
+              color: activeTab === 'analyzer'
+                ? '#fff'
+                : '#000',
+            }
           ]}>
             Analizar Foto
           </Text>
-        </TouchableOpacity>
+        </Button>
       </View>
 
+ 
       {/* Contenido según tab activo */}
       {activeTab === 'generator' ? (
         <OutfitGeneratorScreen />
@@ -60,29 +85,3 @@ export default function OutfitScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  tabsContainer: {
-    flexDirection: 'row',
-    elevation: 2,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#757575',
-  },
-  tabTextActive: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-});

@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import { Text, Button, Card, Chip, ActivityIndicator, useTheme } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { generateOutfit } from '../services/geminiService';
-
+import { stylesOutfitScreen as styles } from '../styles/styleFintnes';
 export default function OutfitGeneratorScreen() {
   const theme = useTheme();
   
@@ -52,16 +52,16 @@ export default function OutfitGeneratorScreen() {
         
         {/* Selección de Estilo */}
         <View style={localStyles.section}>
-          <Text style={localStyles.sectionTitle}>1. Selecciona tu estilo</Text>
-          <View style={localStyles.chipContainer}>
+          <Text style={styles.sectionTitle}>1. Selecciona tu estilo</Text>
+          <View style={styles.chipContainer}>
             {styles_options.map((style) => (
               <Card
                 key={style.value}
                 style={[
-                  localStyles.styleCard,
+                  styles.styleCard,
                   selectedStyle === style.value && { 
                     backgroundColor: theme.colors.accent,
-                    elevation: 4
+                    elevation: 3
                   }
                 ]}
                 onPress={() => setSelectedStyle(style.value)}

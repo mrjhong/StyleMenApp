@@ -107,6 +107,79 @@ export const styleFitness = StyleSheet.create({
   },
 });
 
+
+export const stylesOutfitScreen = StyleSheet.create({
+  tabButton: {
+    width: '47%',
+    height: 50,
+    margin: 5,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activeButton: {
+    borderBottomWidth: 3,
+    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+  inactiveButton: {
+    borderBottomWidth: 0,
+    elevation: 1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  activeTabText: {
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
+  inactiveTabText: {
+    fontWeight: '500',
+    opacity: 0.8,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginVertical: 10,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#1a1a1a !important',
+  },
+  chipContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+
+  },
+  styleCard: {
+    width: '27%',
+    marginBottom: 12,
+    marginRight: '3%',
+    borderRadius: 50,
+    borderBlockColor: '#d6a70cff',
+    borderWidth: 2,
+    borderColor: '#d6a70cff',
+    backgroundColor: '#ffefc4ff',
+  },
+
+});
+
 export const aspect = StyleSheet.create({
   white: {
     color: 'white',
@@ -119,5 +192,8 @@ export const aspect = StyleSheet.create({
   },
   red: {
     color: 'red',
+  },
+  black: {
+    color: 'black',
   },
 });
