@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, Image, Alert } from 'react-native';
-import { Text, Button, Card, useTheme } from 'react-native-paper';
+import { Text, Button, Card, useTheme, shadow } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { analyzeOutfitPhoto } from '../services/geminiService';
+import LottieView from 'lottie-react-native';
 
 export default function OutfitAnalyzerScreen() {
   const theme = useTheme();
@@ -60,6 +61,29 @@ export default function OutfitAnalyzerScreen() {
     }
   };
 
+  const NoImageSelectedView = () => (
+    <Card style={[styles.animationCard, { backgroundColor: 'rgba(255, 255, 255, 1)'
+    }]}>
+      <Card.Content style={styles.animationContent}>
+        <View style={styles.lottieContainer}>
+          {/* Sustituye 'RUTA_A_TU_ARCHIVO_LOTTIE.json' con la ruta real */}
+          <LottieView
+            source={require('../assets/Camera.json')} 
+            autoPlay
+            loop
+            style={styles.lottieAnimation}
+          />
+        </View>
+        <Text variant="titleMedium" style={styles.animationText}>
+          ¡Anímate a analizar tu outfit!
+        </Text>
+        <Text variant="bodyMedium" style={styles.animationSubText}>
+          Usa los botones de abajo para empezar.
+        </Text>
+      </Card.Content>
+    </Card>
+  );
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
@@ -84,6 +108,7 @@ export default function OutfitAnalyzerScreen() {
             onPress={() => pickImage(true)}
             style={[styles.pickButton, { flex: 1, marginRight: 8 }]}
             buttonColor={theme.colors.primary}
+            textColor='#fff'
             icon="camera"
           >
             Tomar Foto
@@ -99,7 +124,7 @@ export default function OutfitAnalyzerScreen() {
             Desde Galería
           </Button>
         </View>
-
+        {!selectedImage && <NoImageSelectedView />}
         {/* Preview de imagen */}
         {selectedImage && (
           <View style={styles.imageContainer}>
@@ -287,4 +312,40 @@ const styles = StyleSheet.create({
   saveButton: {
     marginTop: 16,
   },
+
+  animationCard: {
+    
+    marginTop: 16,
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    elevation: 0, // No necesita mucha sombra
+  },
+  animationContent: {
+    alignItems: 'center',
+    width: '100%',
+    paddingHorizontal: 0,
+  },
+  lottieContainer: {
+    width: 150, 
+    height: 150, 
+    marginBottom: 8,
+    // Centrar el Lottie
+    alignItems: 'center', 
+    justifyContent: 'center',
+  },
+  lottieAnimation: {
+    width: '100%',
+    height: '100%',
+  },
+  animationText: {
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  animationSubText: {
+    color: '#757575',
+    textAlign: 'center',
+  }
 });

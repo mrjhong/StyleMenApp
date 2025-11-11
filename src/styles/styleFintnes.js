@@ -141,7 +141,7 @@ export const stylesOutfitScreen = StyleSheet.create({
     letterSpacing: 0.5,
   },
   inactiveTabText: {
-    fontWeight: '500',
+    fontWeight: 'bold',
     opacity: 0.8,
   },
   container: {
@@ -167,6 +167,11 @@ export const stylesOutfitScreen = StyleSheet.create({
     alignItems: 'center',
 
   },
+  section: {
+    marginVertical: 20,
+    paddingHorizontal: 16,
+    
+  },
   styleCard: {
     width: '27%',
     marginBottom: 12,
@@ -177,6 +182,37 @@ export const stylesOutfitScreen = StyleSheet.create({
     borderColor: '#d6a70cff',
     backgroundColor: '#ffefc4ff',
   },
+  chipText: {
+    color: '#ffffffff',
+    fontWeight: 'bold',
+  },
+  selectedChipText: {
+    color: '#000000ff',
+    fontWeight: 'bold',
+  },
+  horizontalScroll: {
+    marginHorizontal: -16,
+    paddingVertical :3,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+ 
+  outfitTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+    marginBottom: 4,
+    fontFamily: 'System',
+  },
+  outfitDescription: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.7)',
+    lineHeight: 18,
+    fontFamily: 'System',
+  },
+
 
 });
 

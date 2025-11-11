@@ -73,11 +73,11 @@ export default function AppNavigator() {
         component={FragranceScreen}
         options={{ title: 'Fragancias' }}
       />
-      {/* <Tab.Screen 
+       <Tab.Screen 
         name="Fitness" 
         component={FitnessScreen}
         options={{ title: 'Fitness' }}
-      /> */}
+      /> 
       {/* <Tab.Screen 
         name="Profile" 
         component={ProfileScreen}

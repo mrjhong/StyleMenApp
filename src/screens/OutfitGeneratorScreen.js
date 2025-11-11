@@ -4,9 +4,10 @@ import { Text, Button, Card, Chip, ActivityIndicator, useTheme } from 'react-nat
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { generateOutfit } from '../services/geminiService';
 import { stylesOutfitScreen as styles } from '../styles/styleFintnes';
+import { CardImage } from '../components/CardImage';
 export default function OutfitGeneratorScreen() {
   const theme = useTheme();
-  
+
   // Estados
   const [selectedStyle, setSelectedStyle] = useState(null);
   const [selectedOccasion, setSelectedOccasion] = useState(null);
@@ -26,6 +27,19 @@ export default function OutfitGeneratorScreen() {
     { label: 'Evento', value: 'evento' },
     { label: 'Día Casual', value: 'casual' },
     { label: 'Gym', value: 'gym' },
+  ];
+
+  const dailyStyles = [
+    {
+      label: 'Casual',
+      description: 'Ropa cómoda y relajada para el día a día.',
+      image: 'https://i.pinimg.com/1200x/b2/07/ab/b207ab56faecd381bb89dcb328f53d0a.jpg',
+    },
+    {
+      label: 'Urbano',
+      description: 'Estilo moderno y a la moda para la vida en la ciudad.',
+      image: 'https://i.pinimg.com/736x/41/d9/19/41d919f51cd81eba845c91fda0caf638.jpg',
+    }
   ];
 
   const handleGenerate = async () => {
@@ -49,7 +63,27 @@ export default function OutfitGeneratorScreen() {
   return (
     <ScrollView style={localStyles.container}>
       <View style={localStyles.content}>
-        
+
+        {/* card estilos diarios */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Estilos Diarios Populares</Text>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.horizontalScroll}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {dailyStyles.map((style, index) => (
+              <View key={index} style={styles.outfitCard}>
+
+                <CardImage props={{data:style, index:index}}/>
+            
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+
         {/* Selección de Estilo */}
         <View style={localStyles.section}>
           <Text style={styles.sectionTitle}>1. Selecciona tu estilo</Text>
@@ -59,7 +93,7 @@ export default function OutfitGeneratorScreen() {
                 key={style.value}
                 style={[
                   styles.styleCard,
-                  selectedStyle === style.value && { 
+                  selectedStyle === style.value && {
                     backgroundColor: theme.colors.accent,
                     elevation: 3
                   }
@@ -67,10 +101,10 @@ export default function OutfitGeneratorScreen() {
                 onPress={() => setSelectedStyle(style.value)}
               >
                 <Card.Content style={localStyles.styleCardContent}>
-                  <MaterialCommunityIcons 
-                    name={style.icon} 
-                    size={32} 
-                    color={selectedStyle === style.value ? '#fff' : theme.colors.primary} 
+                  <MaterialCommunityIcons
+                    name={style.icon}
+                    size={32}
+                    color={selectedStyle === style.value ? '#fff' : theme.colors.primary}
                   />
                   <Text style={[
                     localStyles.styleLabel,
@@ -87,23 +121,32 @@ export default function OutfitGeneratorScreen() {
         {/* Selección de Ocasión */}
         <View style={localStyles.section}>
           <Text style={localStyles.sectionTitle}>2. ¿Para qué ocasión?</Text>
-          <View style={localStyles.chipContainer}>
-            {occasions.map((occasion) => (
-              <Chip
-                key={occasion.value}
-                selected={selectedOccasion === occasion.value}
-                onPress={() => setSelectedOccasion(occasion.value)}
-                style={[
-                  localStyles.chip,
-                  selectedOccasion === occasion.value && { 
-                    backgroundColor: theme.colors.accent 
-                  }
-                ]}
-                textStyle={selectedOccasion === occasion.value && { color: '#fff' }}
-              >
-                {occasion.label}
-              </Chip>
-            ))}
+          <View style={styles.chipContainer}>
+            {occasions.map((occasion) => {
+              const isSelected = selectedOccasion === occasion.value;
+
+              return (
+                <Chip
+                  key={occasion.value}
+                  selected={isSelected}
+                  onPress={() => setSelectedOccasion(occasion.value)}
+                  style={[
+                    localStyles.chip,
+                    {
+                      backgroundColor: isSelected
+                        ? theme.colors.accent
+                        : '#362a45'
+                    }
+                  ]}
+                  textStyle={[
+                    styles.chipText,
+                    isSelected && styles.selectedChipText
+                  ]}
+                >
+                  {occasion.label}
+                </Chip>
+              );
+            })}
           </View>
         </View>
 
@@ -115,6 +158,7 @@ export default function OutfitGeneratorScreen() {
           disabled={loading}
           style={localStyles.generateButton}
           buttonColor={theme.colors.primary}
+          textColor="#fff"
           contentStyle={{ paddingVertical: 8 }}
           labelStyle={{ fontSize: 16, fontWeight: 'bold' }}
         >
@@ -139,7 +183,7 @@ export default function OutfitGeneratorScreen() {
                 <Card.Content>
                   <Text style={localStyles.outfitTitle}>Opción {index + 1}</Text>
                   <Text style={localStyles.outfitDescription}>{outfit.description}</Text>
-                  
+
                   <View style={localStyles.itemsList}>
                     {outfit.items.map((item, idx) => (
                       <View key={idx} style={localStyles.itemRow}>
@@ -150,8 +194,8 @@ export default function OutfitGeneratorScreen() {
                   </View>
 
                   {outfit.shopLinks && (
-                    <Button 
-                      mode="outlined" 
+                    <Button
+                      mode="outlined"
                       style={localStyles.shopButton}
                       onPress={() => Alert.alert('Próximamente', 'Links de compra en desarrollo')}
                     >
@@ -168,7 +212,7 @@ export default function OutfitGeneratorScreen() {
   );
 }
 
-const localStyles = StyleSheet.create({
+ const localStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -211,6 +255,7 @@ const localStyles = StyleSheet.create({
   generateButton: {
     marginVertical: 16,
     borderRadius: 12,
+   
   },
   loadingContainer: {
     alignItems: 'center',

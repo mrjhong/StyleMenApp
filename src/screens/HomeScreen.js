@@ -4,10 +4,8 @@ import { Text, Card, useTheme } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import  { aspect } from '../styles/styleFintnes';
-const { width } = Dimensions.get('window');
 
 export default function HomeScreen({ navigation }) {
-  const theme = useTheme();
 
 
 
