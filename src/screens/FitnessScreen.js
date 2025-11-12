@@ -73,10 +73,10 @@ export default function FitnessScreen() {
         {/* Si tienes una imagen de fondo, úsala aquí. Usaré un degradado y un ícono si no está disponible */}
         <Image source={fitnessImage} style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0.8 }} resizeMode="cover" />
         {/* 2. Overlay que oscurece y tiñe */}
-  <View style={[
-    modernStyles.overlay, 
-    { backgroundColor: 'rgba(26, 10, 132, 0.12)' } // Color Verde Oscuro con 50% de Opacidad
-  ]} />
+        <View style={[
+          modernStyles.overlay,
+          { backgroundColor: 'rgba(26, 10, 132, 0.12)' } // Color Verde Oscuro con 50% de Opacidad
+        ]} />
         <View style={modernStyles.headerTextContainer}>
           <Text style={[modernStyles.headerTitle]}>
             Fitness & Rutinas
@@ -187,9 +187,9 @@ const modernStyles = StyleSheet.create({
     // El fondo blanco viene de theme.colors.background
   },
   overlay: {
-        ...StyleSheet.absoluteFillObject, // Cubre toda la View contenedora
-        // El color y la opacidad hacen el efecto.
-    },
+    ...StyleSheet.absoluteFillObject, // Cubre toda la View contenedora
+    // El color y la opacidad hacen el efecto.
+  },
   header: {
     width: '100%',
     height: 180,
