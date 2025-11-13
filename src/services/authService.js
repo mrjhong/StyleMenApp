@@ -1,217 +1,87 @@
+// services/authService.js
+
 import * as SecureStore from 'expo-secure-store';
-import {
-  GoogleSignin,
-  statusCodes,
-} from '@react-native-google-signin/google-signin';
 import axios from 'axios';
+import * as Google from 'expo-auth-session/providers/google'; // Solo para tipado
 
 // Configurar la URL de tu API Express
-const API_BASE_URL = 'http://192.168.1.100:5000'; // Cambia por tu IP/URL
+// NOTA: Usa tu IP local para desarrollo, pero para producción debe ser una URL pública (HTTPS).
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://localhost:8000/api';
 
 /**
- * Configura Google Sign-In
+ * Guarda el token JWT y la información básica del usuario.
+ * @param {string} token - El token JWT devuelto por tu servidor Express.
+ * @param {object} userData - Datos del usuario (id, name, email).
  */
-export const configureGoogleSignIn = async () => {
-  try {
-    // Tu Web Client ID de Google Cloud Console
-    const WEB_CLIENT_ID = 'TU_WEB_CLIENT_ID.apps.googleusercontent.com';
-    
-    GoogleSignin.configure({
-      webClientId: WEB_CLIENT_ID,
-      offlineAccess: true,
-      scopes: ['profile', 'email'],
-    });
-    
-    console.log('✅ Google Sign-In configurado correctamente');
-  } catch (error) {
-    console.error('❌ Error configurando Google Sign-In:', error);
-  }
+const saveAuthData = async (token, userData) => {
+    await SecureStore.setItemAsync('userToken', token);
+    await SecureStore.setItemAsync('userData', JSON.stringify(userData));
 };
 
 /**
- * Verifica si el usuario ya está autenticado
+ * Lee el token JWT y los datos del usuario.
  */
-export const isUserSignedIn = async () => {
-  try {
-    const isSignedIn = await GoogleSignin.isSignedIn();
-    return isSignedIn;
-  } catch (error) {
-    console.error('Error verificando sesión:', error);
-    return false;
-  }
+export const getAuthData = async () => {
+    const token = await SecureStore.getItemAsync('userToken');
+    const userDataJson = await SecureStore.getItemAsync('userData');
+    
+    if (token && userDataJson) {
+        return { 
+            token, 
+            user: JSON.parse(userDataJson) 
+        };
+    }
+    return null;
 };
 
-/**
- * Realiza el login con Google y autentica con el backend
- */
-export const signInWithGoogle = async () => {
-  try {
-    // Verificar si Google Play Services está disponible
-    await GoogleSignin.hasPlayServices();
-    
-    // Iniciar sesión con Google
-    const userInfo = await GoogleSignin.signIn();
-    
-    if (userInfo) {
-      const { idToken, user } = userInfo;
-      
-      console.log('✅ Usuario autenticado con Google:', user.email);
-      
-      // Enviar token al backend Express
-      const response = await axios.post(`${API_BASE_URL}/auth/google-login`, {
-        idToken,
-        email: user.email,
-        name: user.name,
-        photoUrl: user.photo,
-      });
 
-      // Guardar tokens de sesión de forma segura
-      if (response.data.token) {
-        await SecureStore.setItemAsync('auth_token', response.data.token);
-        await SecureStore.setItemAsync('refresh_token', response.data.refreshToken || '');
-        await SecureStore.setItemAsync('user_data', JSON.stringify(response.data.user));
+/**
+ * Procesa la respuesta de Google y llama al backend para el login/registro.
+ * * @param {Google.AuthSessionResult} googleResponse - Respuesta del flujo de autenticación de Google.
+ * @returns {object} { success: boolean, user?: object, error?: string }
+ */
+export const processGoogleSignIn = async (googleResponse) => {
+    
+    if (googleResponse.type !== 'success' || !googleResponse.params.id_token) {
+        // Falló la autenticación en Google o fue cancelada
+        return { success: false, error: 'Autenticación cancelada o fallida por Google.' };
+    }
+
+    const idToken = googleResponse.params.id_token;
+    
+    try {
+        // Llama a tu endpoint de Express.
+        const response = await axios.post(`${API_BASE_URL}/auth/google`, {
+            idToken: idToken,
+        });
+
+        // Respuesta del backend (asume que devuelve { token, user: { id, name, email }})
+        const { token, user } = response.data; 
+
+        if (token && user) {
+            // Guardar el token y datos del usuario en SecureStore
+            await saveAuthData(token, user);
+            
+            return { 
+                success: true, 
+                user: user,
+            };
+        }
+
+        return { success: false, error: 'Respuesta inválida del servidor.' };
+
+    } catch (error) {
+        console.error('❌ Error al enviar token al backend:', error.response ? error.response.data : error.message);
         
-        console.log('✅ Tokens guardados correctamente');
-      }
-
-      return {
-        success: true,
-        user: response.data.user,
-        token: response.data.token,
-      };
+        const errorMessage = error.response?.data?.error || 'Error de conexión con el servidor.';
+        return { success: false, error: errorMessage };
     }
-  } catch (error) {
-    if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-      console.log('Usuario canceló el inicio de sesión');
-      return {
-        success: false,
-        error: 'Inicio de sesión cancelado',
-      };
-    } else if (error.code === statusCodes.IN_PROGRESS) {
-      console.log('Inicio de sesión en progreso');
-      return {
-        success: false,
-        error: 'Inicio de sesión en progreso',
-      };
-    } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-      console.log('Google Play Services no disponibles');
-      return {
-        success: false,
-        error: 'Google Play Services no disponibles',
-      };
-    } else {
-      console.error('Error en Google Sign-In:', error);
-      return {
-        success: false,
-        error: error.message || 'Error al iniciar sesión',
-      };
-    }
-  }
 };
 
 /**
- * Obtiene el token de autenticación almacenado
- */
-export const getAuthToken = async () => {
-  try {
-    const token = await SecureStore.getItemAsync('auth_token');
-    return token;
-  } catch (error) {
-    console.error('Error obteniendo token:', error);
-    return null;
-  }
-};
-
-/**
- * Obtiene los datos del usuario almacenados
- */
-export const getUserData = async () => {
-  try {
-    const userData = await SecureStore.getItemAsync('user_data');
-    return userData ? JSON.parse(userData) : null;
-  } catch (error) {
-    console.error('Error obteniendo datos del usuario:', error);
-    return null;
-  }
-};
-
-/**
- * Cierra la sesión
+ * Cierra la sesión (simplemente borra los datos de SecureStore).
  */
 export const signOut = async () => {
-  try {
-    await GoogleSignin.signOut();
-    await SecureStore.deleteItemAsync('auth_token');
-    await SecureStore.deleteItemAsync('refresh_token');
-    await SecureStore.deleteItemAsync('user_data');
-    console.log('✅ Sesión cerrada');
-    return { success: true };
-  } catch (error) {
-    console.error('Error al cerrar sesión:', error);
-    return { success: false, error: error.message };
-  }
-};
-
-/**
- * Obtiene el usuario actualmente autenticado
- */
-export const getCurrentUser = async () => {
-  try {
-    const userInfo = await GoogleSignin.getCurrentUser();
-    return userInfo;
-  } catch (error) {
-    console.error('Error obteniendo usuario actual:', error);
-    return null;
-  }
-};
-
-/**
- * Crea un axios instance con autenticación
- */
-export const createAuthenticatedClient = async () => {
-  const token = await getAuthToken();
-  
-  const client = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  });
-
-  // Interceptor para refrescar token si expira
-  client.interceptors.response.use(
-    response => response,
-    async error => {
-      const originalRequest = error.config;
-
-      if (error.response?.status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true;
-
-        try {
-          const refreshToken = await SecureStore.getItemAsync('refresh_token');
-          
-          if (refreshToken) {
-            const response = await axios.post(
-              `${API_BASE_URL}/auth/refresh-token`,
-              { refreshToken }
-            );
-
-            await SecureStore.setItemAsync('auth_token', response.data.token);
-            originalRequest.headers.Authorization = `Bearer ${response.data.token}`;
-
-            return client(originalRequest);
-          }
-        } catch (refreshError) {
-          console.error('Error refrescando token:', refreshError);
-          // Redirigir a login
-          await signOut();
-        }
-      }
-
-      return Promise.reject(error);
-    }
-  );
-
-  return client;
+    await SecureStore.deleteItemAsync('userToken');
+    await SecureStore.deleteItemAsync('userData');
 };

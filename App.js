@@ -3,6 +3,8 @@ import { StatusBar } from 'expo-status-bar';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './src/navigation/AppNavigator';
+import { AuthProvider } from './src/context/AuthContext';
+import RootNavigator from './src/navigation/RootNavigator';
 
 // Tema personalizado con colores masculinos
 const theme = {
@@ -24,10 +26,14 @@ const theme = {
 export default function App() {
   return (
     <PaperProvider theme={theme}>
-      <NavigationContainer>
-        <StatusBar style="auto" />
-        <AppNavigator />
-      </NavigationContainer>
+      {/* 1. Proveemos el estado de autenticación a toda la aplicación */}
+      <AuthProvider>
+        <NavigationContainer>
+          <StatusBar style="auto" />
+          {/* 2. El RootNavigator decide qué mostrar */}
+          <RootNavigator />
+        </NavigationContainer>
+      </AuthProvider>
     </PaperProvider>
   );
 }

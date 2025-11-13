@@ -15,10 +15,8 @@
     "plugins": [
       [
         "@react-native-google-signin/google-signin"
-       
       ]
     ],
-    
     "ios": {
       "supportsTablet": true
     },
@@ -31,6 +29,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5b555a56-f1a2-445c-a7df-c6047dcf1766"
+      }
     }
   }
 }
