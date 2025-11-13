@@ -8,151 +8,151 @@ const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/
 /**
  * Genera combinaciones de outfit basado en estilo y ocasión
  */
-export const generateOutfit = async (style, occasion) => {
-  const prompt = `Eres un experto asesor de moda masculina. 
+// export const generateOutfit = async (style, occasion) => {
+//   const prompt = `Eres un experto asesor de moda masculina. 
   
-  El usuario quiere un outfit con estas características:
-  - Estilo: ${style}
-  - Ocasión: ${occasion}
-  - País: Colombia (considera el clima y las tiendas disponibles)
+//   El usuario quiere un outfit con estas características:
+//   - Estilo: ${style}
+//   - Ocasión: ${occasion}
+//   - País: Colombia (considera el clima y las tiendas disponibles)
   
-  Por favor, genera 3 combinaciones de outfit completas.
+//   Por favor, genera 3 combinaciones de outfit completas.
   
-  Para cada outfit incluye:
-  1. Una descripción breve del look (2-3 líneas)
-  2. Lista de prendas específicas (ejemplo: "Camisa oxford azul claro", "Jeans slim fit azul oscuro")
-  3. Consejos sobre colores y fit
+//   Para cada outfit incluye:
+//   1. Una descripción breve del look (2-3 líneas)
+//   2. Lista de prendas específicas (ejemplo: "Camisa oxford azul claro", "Jeans slim fit azul oscuro")
+//   3. Consejos sobre colores y fit
   
-  Responde SOLO en formato JSON con esta estructura:
-  {
-    "outfits": [
-      {
-        "description": "Descripción del outfit",
-        "items": ["Prenda 1", "Prenda 2", "Prenda 3", "Prenda 4"],
-        "tips": "Consejo sobre el outfit"
-      }
-    ]
-  }
+//   Responde SOLO en formato JSON con esta estructura:
+//   {
+//     "outfits": [
+//       {
+//         "description": "Descripción del outfit",
+//         "items": ["Prenda 1", "Prenda 2", "Prenda 3", "Prenda 4"],
+//         "tips": "Consejo sobre el outfit"
+//       }
+//     ]
+//   }
   
-  NO incluyas markdown, solo el JSON puro.`;
+//   NO incluyas markdown, solo el JSON puro.`;
 
-  try {
-    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.9,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
-        }
-      })
-    });
+//   try {
+//     const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify({
+//         contents: [{
+//           parts: [{
+//             text: prompt
+//           }]
+//         }],
+//         generationConfig: {
+//           temperature: 0.9,
+//           topK: 40,
+//           topP: 0.95,
+//           maxOutputTokens: 2048,
+//         }
+//       })
+//     });
 
-    const data = await response.json();
+//     const data = await response.json();
     
-    if (!response.ok) {
-      throw new Error(data.error?.message || 'Error en la API de Gemini');
-    }
+//     if (!response.ok) {
+//       throw new Error(data.error?.message || 'Error en la API de Gemini');
+//     }
 
-    // Extraer el texto de la respuesta
-    const textResponse = data.candidates[0].content.parts[0].text;
+//     // Extraer el texto de la respuesta
+//     const textResponse = data.candidates[0].content.parts[0].text;
     
-    // Limpiar y parsear JSON
-    const cleanJson = textResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const result = JSON.parse(cleanJson);
+//     // Limpiar y parsear JSON
+//     const cleanJson = textResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+//     const result = JSON.parse(cleanJson);
     
-    return result;
-  } catch (error) {
-    console.error('Error generating outfit:', error);
-    throw error;
-  }
-};
+//     return result;
+//   } catch (error) {
+//     console.error('Error generating outfit:', error);
+//     throw error;
+//   }
+// };
 
 /**
  * Analiza una foto de outfit y proporciona feedback
  */
-export const analyzeOutfitPhoto = async (imageUri) => {
-  try {
-    // Convertir imagen a base64
-    const base64Image = await FileSystem.readAsStringAsync(imageUri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
+// export const analyzeOutfitPhoto = async (imageUri) => {
+//   try {
+//     // Convertir imagen a base64
+//     const base64Image = await FileSystem.readAsStringAsync(imageUri, {
+//       encoding: FileSystem.EncodingType.Base64,
+//     });
 
-    const prompt = `Eres un experto estilista masculino. Analiza esta foto de outfit y proporciona:
+//     const prompt = `Eres un experto estilista masculino. Analiza esta foto de outfit y proporciona:
 
-    1. Calificación general del 1-10
-    2. Análisis de la combinación de colores (¿funcionan bien juntos?)
-    3. Análisis del fit/ajuste de las prendas (muy ajustado, correcto, muy holgado)
-    4. 3-5 sugerencias específicas de mejora
+//     1. Calificación general del 1-10
+//     2. Análisis de la combinación de colores (¿funcionan bien juntos?)
+//     3. Análisis del fit/ajuste de las prendas (muy ajustado, correcto, muy holgado)
+//     4. 3-5 sugerencias específicas de mejora
     
-    Sé constructivo, honesto pero amable.
+//     Sé constructivo, honesto pero amable.
     
-    Responde SOLO en formato JSON con esta estructura:
-    {
-      "rating": 8,
-      "colorAnalysis": "Análisis de colores aquí...",
-      "fitAnalysis": "Análisis del fit aquí...",
-      "suggestions": [
-        "Sugerencia 1",
-        "Sugerencia 2",
-        "Sugerencia 3"
-      ]
-    }
+//     Responde SOLO en formato JSON con esta estructura:
+//     {
+//       "rating": 8,
+//       "colorAnalysis": "Análisis de colores aquí...",
+//       "fitAnalysis": "Análisis del fit aquí...",
+//       "suggestions": [
+//         "Sugerencia 1",
+//         "Sugerencia 2",
+//         "Sugerencia 3"
+//       ]
+//     }
     
-    NO incluyas markdown, solo el JSON puro.`;
+//     NO incluyas markdown, solo el JSON puro.`;
 
-    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [
-            { text: prompt },
-            {
-              inline_data: {
-                mime_type: 'image/jpeg',
-                data: base64Image
-              }
-            }
-          ]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
-        }
-      })
-    });
+//     const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify({
+//         contents: [{
+//           parts: [
+//             { text: prompt },
+//             {
+//               inline_data: {
+//                 mime_type: 'image/jpeg',
+//                 data: base64Image
+//               }
+//             }
+//           ]
+//         }],
+//         generationConfig: {
+//           temperature: 0.7,
+//           topK: 40,
+//           topP: 0.95,
+//           maxOutputTokens: 2048,
+//         }
+//       })
+//     });
 
-    const data = await response.json();
+//     const data = await response.json();
     
-    if (!response.ok) {
-      throw new Error(data.error?.message || 'Error en la API de Gemini');
-    }
+//     if (!response.ok) {
+//       throw new Error(data.error?.message || 'Error en la API de Gemini');
+//     }
 
-    // Extraer y parsear respuesta
-    const textResponse = data.candidates[0].content.parts[0].text;
-    const cleanJson = textResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const result = JSON.parse(cleanJson);
+//     // Extraer y parsear respuesta
+//     const textResponse = data.candidates[0].content.parts[0].text;
+//     const cleanJson = textResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+//     const result = JSON.parse(cleanJson);
     
-    return result;
-  } catch (error) {
-    console.error('Error analyzing outfit photo:', error);
-    throw error;
-  }
-};
+//     return result;
+//   } catch (error) {
+//     console.error('Error analyzing outfit photo:', error);
+//     throw error;
+//   }
+// };
 
 /**
  * Obtener recomendaciones de fragancias

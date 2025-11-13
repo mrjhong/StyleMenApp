@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import { Text, Button, Card, Chip, ActivityIndicator, useTheme } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { generateOutfit } from '../services/geminiService';
+import { outfitservice } from '../services/outfitService';
 import { stylesOutfitScreen as styles } from '../styles/styleFintnes';
 import { CardImage } from '../components/CardImage';
 export default function OutfitGeneratorScreen() {
@@ -50,7 +50,7 @@ export default function OutfitGeneratorScreen() {
 
     setLoading(true);
     try {
-      const result = await generateOutfit(selectedStyle, selectedOccasion);
+      const result = await outfitservice.generateOutfit(selectedStyle, selectedOccasion);
       setGeneratedOutfits(result.outfits);
     } catch (error) {
       Alert.alert('Error', 'No se pudo generar el outfit. Intenta de nuevo.');
@@ -182,15 +182,34 @@ export default function OutfitGeneratorScreen() {
               <Card key={index} style={localStyles.outfitCard}>
                 <Card.Content>
                   <Text style={localStyles.outfitTitle}>Opción {index + 1}</Text>
+                  
+                  <Text style={localStyles.outfitTitle}>{outfit.name}</Text>
                   <Text style={localStyles.outfitDescription}>{outfit.description}</Text>
 
                   <View style={localStyles.itemsList}>
                     {outfit.items.map((item, idx) => (
                       <View key={idx} style={localStyles.itemRow}>
                         <MaterialCommunityIcons name="check-circle" size={20} color={theme.colors.accent} />
-                        <Text style={localStyles.itemText}>{item}</Text>
+                        <Text style={localStyles.itemText}>{item.type}</Text>
+                        <Text style={localStyles.itemText}> - {item.name} ({item.color}, {item.material}, {item.fit})</Text>
+
                       </View>
                     ))}
+                  </View>
+
+                  <View>
+                    <Text style={localStyles.outfitTitle}>Accesorios Sugeridos:</Text>
+                    {outfit.accessories.map((accessory, idx) => (
+                      <View key={idx} style={localStyles.itemRow}>
+                        <MaterialCommunityIcons name="check-circle" size={20} color={theme.colors.accent} />
+                        <Text style={localStyles.itemText}>{accessory.type} - {accessory.name}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  <View>
+                    <Text style={localStyles.outfitTitle}>Consejos:</Text>
+                    <Text style={localStyles.outfitDescription}>{outfit.tips}</Text>
                   </View>
 
                   {outfit.shopLinks && (

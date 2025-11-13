@@ -3,8 +3,8 @@ import { View, ScrollView, StyleSheet, Image, Alert } from 'react-native';
 import { Text, Button, Card, useTheme, shadow } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { analyzeOutfitPhoto } from '../services/geminiService';
 import LottieView from 'lottie-react-native';
+import { outfitservice } from '../services/outfitService';
 
 export default function OutfitAnalyzerScreen() {
   const theme = useTheme();
@@ -51,7 +51,7 @@ export default function OutfitAnalyzerScreen() {
 
     setLoading(true);
     try {
-      const result = await analyzeOutfitPhoto(selectedImage);
+      const result = await outfitservice.analyzeOutfitPhoto(selectedImage);
       setAnalysis(result);
     } catch (error) {
       Alert.alert('Error', 'No se pudo analizar la imagen. Intenta de nuevo.');
@@ -185,6 +185,36 @@ export default function OutfitAnalyzerScreen() {
                     </View>
                   ))}
                 </View>
+
+                <View>
+                  {/* Recomendaciones de accesorios */} 
+                  <View style={styles.analysisSection}>
+                    <View style={styles.analysisTitleRow}>
+                      <MaterialCommunityIcons name="bracelet" size={24} color={theme.colors.accent} />
+                      <Text style={styles.analysisTitle}>Recomendaciones de Accesorios</Text>
+                    </View>
+                    {analysis.accessories.map((accessory, index) => (
+                      <View key={index} style={styles.suggestionRow}>
+                        <Text style={styles.bullet}>•</Text>
+                        <Text style={styles.suggestionText}>
+                          {accessory.type}: {accessory.suggestion}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+
+                <View>
+                  {/* Feedback general */}
+                  <View style={styles.analysisSection}>
+                    <View style={styles.analysisTitleRow}>
+                      <MaterialCommunityIcons name="comment-text" size={24} color={theme.colors.accent} />
+                      <Text style={styles.analysisTitle}>Feedback General</Text>
+                    </View>
+                    <Text style={styles.analysisText}>{analysis.overallFeedback}</Text>
+                  </View>
+                </View>
+                
 
                 {/* Botón para guardar */}
                 <Button 
