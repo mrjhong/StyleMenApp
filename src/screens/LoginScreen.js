@@ -21,9 +21,14 @@ export default function LoginScreen({ navigation }) {
 
     // 1. Configuración de Google Sign-In usando el hook (debe estar en el componente)
     const [request, response, promptAsync] = Google.useAuthRequest({
-        androidClientId: clientAndroidId,
+        clientId: clientAndroidId,
         //webClientId: clientWebId, // Siempre se recomienda incluir el webClientId
-    });
+    },
+    {
+        native: 'StyleMenApp://', // Asegúrate de que coincida con el scheme en app.json
+    }
+  
+  );
     const { login } = useAuth();
     // 2. useEffect para manejar la inicialización y auto-login
     useEffect(() => {
