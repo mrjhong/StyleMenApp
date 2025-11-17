@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "StyleMenApp",
-    "slug": "StyleMenApp",
+    "name": "stylemenapp",
+    "slug": "stylemenapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "scheme": "StyleMenApp",
+    "scheme": "stylemenapp",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -19,21 +19,23 @@
       ]
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.stylemenapp"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.stylemenapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "5b555a56-f1a2-445c-a7df-c6047dcf1766"
+        "projectId": "9228b863-6411-4466-b538-181334f64da3"
       }
     }
   }

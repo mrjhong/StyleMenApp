@@ -2,86 +2,152 @@
 
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
-import * as Google from 'expo-auth-session/providers/google'; // Solo para tipado
 
-// Configurar la URL de tu API Express
-// NOTA: Usa tu IP local para desarrollo, pero para producción debe ser una URL pública (HTTPS).
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://localhost:8000/api';
 
 /**
- * Guarda el token JWT y la información básica del usuario.
- * @param {string} token - El token JWT devuelto por tu servidor Express.
- * @param {object} userData - Datos del usuario (id, name, email).
+ * Guarda el token JWT y la información básica del usuario
  */
 const saveAuthData = async (token, userData) => {
+  try {
     await SecureStore.setItemAsync('userToken', token);
     await SecureStore.setItemAsync('userData', JSON.stringify(userData));
+    console.log('✅ Datos de autenticación guardados');
+  } catch (error) {
+    console.error('❌ Error al guardar datos de autenticación:', error);
+    throw error;
+  }
 };
 
 /**
- * Lee el token JWT y los datos del usuario.
+ * Lee el token JWT y los datos del usuario
  */
 export const getAuthData = async () => {
+  try {
     const token = await SecureStore.getItemAsync('userToken');
     const userDataJson = await SecureStore.getItemAsync('userData');
     
     if (token && userDataJson) {
-        return { 
-            token, 
-            user: JSON.parse(userDataJson) 
-        };
+      return { 
+        token, 
+        user: JSON.parse(userDataJson) 
+      };
     }
     return null;
+  } catch (error) {
+    console.error('❌ Error al leer datos de autenticación:', error);
+    return null;
+  }
 };
 
-
 /**
- * Procesa la respuesta de Google y llama al backend para el login/registro.
- * * @param {Google.AuthSessionResult} googleResponse - Respuesta del flujo de autenticación de Google.
- * @returns {object} { success: boolean, user?: object, error?: string }
+ * Obtener token válido (refrescar si es necesario)
  */
-export const processGoogleSignIn = async (googleResponse) => {
-    
-    if (googleResponse.type !== 'success' || !googleResponse.params.id_token) {
-        // Falló la autenticación en Google o fue cancelada
-        return { success: false, error: 'Autenticación cancelada o fallida por Google.' };
-    }
-
-    const idToken = googleResponse.params.id_token;
-    
-    try {
-        // Llama a tu endpoint de Express.
-        const response = await axios.post(`${API_BASE_URL}/auth/google`, {
-            idToken: idToken,
-        });
-
-        // Respuesta del backend (asume que devuelve { token, user: { id, name, email }})
-        const { token, user } = response.data; 
-
-        if (token && user) {
-            // Guardar el token y datos del usuario en SecureStore
-            await saveAuthData(token, user);
-            
-            return { 
-                success: true, 
-                user: user,
-            };
-        }
-
-        return { success: false, error: 'Respuesta inválida del servidor.' };
-
-    } catch (error) {
-        console.error('❌ Error al enviar token al backend:', error.response ? error.response.data : error.message);
-        
-        const errorMessage = error.response?.data?.error || 'Error de conexión con el servidor.';
-        return { success: false, error: errorMessage };
-    }
+export const getValidToken = async () => {
+  const authData = await getAuthData();
+  return authData?.token || null;
 };
 
 /**
- * Cierra la sesión (simplemente borra los datos de SecureStore).
+ * Crear cliente axios con interceptor para token
+ */
+const createAuthenticatedClient = async () => {
+  const token = await getValidToken();
+  
+  return axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    timeout: 10000,
+  });
+};
+
+/**
+ * Procesa la respuesta de Google y llama al backend
+ * IMPORTANTE: Este método ahora recibe los datos del usuario, no solo el idToken
+ */
+export const processGoogleSignIn = async (userData) => {
+  const { idToken, email, name, picture } = userData;
+
+  if (!idToken || !email) {
+    return { 
+      success: false, 
+      error: 'Datos incompletos de Google' 
+    };
+  }
+
+  try {
+    console.log('📤 Enviando datos a backend:', { email, name });
+
+    // Enviar al backend
+    const response = await axios.post(`${API_BASE_URL}/auth/google`, {
+      idToken: idToken,
+      email: email,
+      name: name,
+      picture: picture,
+    });
+
+    console.log('✅ Respuesta del backend:', response.status);
+
+    // Extraer datos de respuesta
+    const { token, user } = response.data;
+
+    if (token && user) {
+      // Guardar en SecureStore
+      await saveAuthData(token, user);
+      
+      return { 
+        success: true, 
+        user: user,
+        token: token,
+      };
+    }
+
+    return { 
+      success: false, 
+      error: 'Respuesta inválida del servidor' 
+    };
+
+  } catch (error) {
+    console.error('❌ Error al procesar Google SignIn:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message,
+    });
+
+    const errorMessage = 
+      error.response?.data?.error || 
+      error.response?.statusText ||
+      error.message || 
+      'Error desconocido';
+
+    return { 
+      success: false, 
+      error: errorMessage 
+    };
+  }
+};
+
+/**
+ * Cierra la sesión
  */
 export const signOut = async () => {
+  try {
     await SecureStore.deleteItemAsync('userToken');
     await SecureStore.deleteItemAsync('userData');
+    console.log('✅ Sesión cerrada');
+  } catch (error) {
+    console.error('❌ Error al cerrar sesión:', error);
+  }
+};
+
+/**
+ * Verificar si el usuario está autenticado
+ */
+export const isAuthenticated = async () => {
+  const authData = await getAuthData();
+  return !!authData?.token;
 };
