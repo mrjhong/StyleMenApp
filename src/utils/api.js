@@ -1,58 +1,33 @@
-import axios from 'axios';
+import axios from "axios";
 
-const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'https://api.stylemenapp.com';
+const apiUrl = (process.env.EXPO_PUBLIC_API_URL ?? "http://10.0.2.2:3000").replace(/\/+$/, "");
 
 const apiClient = axios.create({
-    baseURL: apiUrl,
-    timeout: 5000,
-    headers: {
-        'Content-Type': 'application/json',
-    },
+  baseURL: apiUrl,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-
-// CREAR METODO GENERALIZADO PARA PETICIONES GET
-export const get = async (endpoint, params = {}) => {
-    try {
-        const response = await apiClient.get(endpoint, { params });
-        return response.data;
-    } catch (error) {
-        console.error(`GET ${endpoint} failed:`, error);
-        throw error;
-    }   
+// Métodos genéricos
+const request = async (method, endpoint, data = {}, params = {}) => {
+  try {
+    const res = await apiClient({
+      method,
+      url: endpoint,
+      data,
+      params,
+    });
+    return res.data;
+  } catch (error) {
+    console.log(`${method.toUpperCase()} ${endpoint} failed:`, error?.message);
+    throw error;
+  }
 };
 
-// CREAR METODO GENERALIZADO PARA PETICIONES POST
-export const post = async (endpoint, data = {}) => {
-    try {
-        const response = await apiClient.post(endpoint, data);
-        return response.data;
-    } catch (error) {
-        console.error(`POST ${endpoint} failed:`, error);
-        throw error;
-    }   
-};
-
-// CREAR METODO GENERALIZADO PARA PETICIONES PUT
-export const put = async (endpoint, data = {}) => {
-    try {
-        const response = await apiClient.put(endpoint, data);
-        return response.data;
-    } catch (error) {
-        console.error(`PUT ${endpoint} failed:`, error);
-        throw error;
-    }
-};
-
-// CREAR METODO GENERALIZADO PARA PETICIONES DELETE
-export const del = async (endpoint) => {
-    try {
-        const response = await apiClient.delete(endpoint);
-        return response.data;
-    } catch (error) {
-        console.error(`DELETE ${endpoint} failed:`, error);
-        throw error;
-    }   
-};
+export const get = (endpoint, params) => request("get", endpoint, {}, params);
+export const post = (endpoint, data) => request("post", endpoint, data);
+export const put = (endpoint, data) => request("put", endpoint, data);
+export const del = (endpoint) => request("delete", endpoint);
 
 export default apiClient;

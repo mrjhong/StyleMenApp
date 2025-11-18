@@ -51,7 +51,8 @@ export default function OutfitGeneratorScreen() {
     setLoading(true);
     try {
       const result = await outfitservice.generateOutfit(selectedStyle, selectedOccasion);
-      setGeneratedOutfits(result.outfits);
+      console.log('Outfits generados:', result);
+      setGeneratedOutfits(result.data.outfits);
     } catch (error) {
       Alert.alert('Error', 'No se pudo generar el outfit. Intenta de nuevo.');
       console.error(error);
