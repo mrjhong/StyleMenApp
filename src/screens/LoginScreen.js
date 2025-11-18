@@ -12,34 +12,25 @@ import {
 import { useAuthRequest } from 'expo-auth-session/build/providers/Google';
 import { useAuth } from '../context/AuthContext';
 import { getAuthData } from '../services/authService';
+import axios from 'axios';
 
 const { width, height } = Dimensions.get('window');
 
 // Configuración de Google OAuth
-// const discovery = {
-//   authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
-//   tokenEndpoint: "https://oauth2.googleapis.com/token",
-//   revocationEndpoint: "https://accounts.google.com/o/oauth2/revoke",
-// };
 
-// Usar diferentes Client IDs para iOS y Android
-// const CLIENT_ID = Platform.OS === "ios"
-//   ? process.env.EXPO_PUBLIC_GOOGLE_OAUTH_IOS_CLIENT_ID
-//   : process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID;
+
 
 const CLIENT_ID = process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID;
 const SCOPES = ["openid", "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"];
 
-// El redirect URI debe coincidir con lo configurado en Google Cloud Console
-const REDIRECT_URI = makeRedirectUri({
-  scheme: "stylemenapp", // Debe coincidir con el scheme en app.json
-  path: "redirect",
-});
+
 
 export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
-  const { login } = useAuth();
+  const { login ,isAuthenticated ,setIsAuthenticated
+
+  } = useAuth();
 
   // Hook de autenticación con Google
   const [request, response, promptAsync] = useAuthRequest(
@@ -74,90 +65,109 @@ export default function LoginScreen({ navigation }) {
   // Manejar la respuesta de Google
   useEffect(() => {
     if (response?.type === 'success') {
-      //handleGoogleResponse(response);
-      alert('Funcionalidad temporalmente deshabilitada por cambios en Google OAuth');
+      handleGoogleSuccess(response.params);
+      //alert('Funcionalidad temporalmente deshabilitada por cambios en Google OAuth');
     } else if (response?.type === 'error') {
       Alert.alert('❌ Error', 'Autenticación cancelada o fallida');
       setIsInitializing(false);
     }
   }, [response]);
 
-  const handleGoogleResponse = async (googleResponse) => {
-    setLoading(true);
-    try {
-      const { code } = googleResponse.params;
+ 
 
-      if (!code) {
-        throw new Error('No se recibió código de autorización');
+ const handleGoogleSuccess = async (params) => {
+    setLoading(true);
+    
+    try {
+      const { access_token, id_token } = params;
+
+      if (!access_token) {
+        throw new Error('No se recibió access token');
       }
 
-      console.log('📝 Código recibido:', code.substring(0, 20) + '...');
-
-      // Intercambiar el código por un token
-      const tokenResponse = await exchangeCodeAsync(
-        {
-          clientId: CLIENT_ID,
-          code: code,
-          redirectUri: REDIRECT_URI,
-        },
-        //discovery
-      );
-
-      console.log('🔑 Token obtenido:', tokenResponse.accessToken?.substring(0, 20) + '...');
+      console.log('🔑 Access token recibido');
+      console.log('🆔 ID token:', id_token ? 'Recibido' : 'No recibido');
 
       // Obtener información del usuario
+      console.log('👤 Obteniendo información del usuario...');
+      console.log('🔗 Haciendo fetch a userinfo con access token', access_token);
       const userInfoResponse = await fetch(
         'https://www.googleapis.com/oauth2/v2/userinfo',
         {
-          headers: { Authorization: `Bearer ${tokenResponse.accessToken}` },
+          headers: { 
+            Authorization: `Bearer ${access_token}` 
+          },
         }
       );
 
-      const userInfo = await userInfoResponse.json();
-
       if (!userInfoResponse.ok) {
+        const errorData = await userInfoResponse.text();
+        console.error('❌ Error al obtener info del usuario:', errorData);
         throw new Error('Error al obtener información del usuario');
       }
 
-      console.log('👤 Usuario:', userInfo.email);
+      const userInfo = await userInfoResponse.json();
+      console.log('✅ Usuario obtenido:', userInfo.email);
 
-      // Enviar la información al backend (AQUÍ ES DONDE OCURRÍA EL ERROR 400)
-      const backendResponse = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/auth/google`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            idToken: tokenResponse.id_token, // 👈 IMPORTANTE: Usar id_token, no accessToken
-            email: userInfo.email,
-            name: userInfo.name,
-            picture: userInfo.picture,
-          }),
-        }
-      );
+      // Enviar al backend
+      console.log('📤 Enviando datos al backend...');
+      const result = await processGoogleSignIn({
+        idToken: id_token || access_token, // Usar access_token si no hay id_token
+        email: userInfo.email,
+        name: userInfo.name,
+        picture: userInfo.picture,
+      });
 
-      const backendData = await backendResponse.json();
-
-      if (!backendResponse.ok) {
-        throw new Error(backendData.error || 'Error en autenticación del servidor');
+      if (result.success) {
+        console.log('✅ Login completo');
+        login(result.user);
+        Alert.alert('¡Bienvenido!', `Hola ${result.user.username} 👋`);
+        setIsAuthenticated(true);
+        console.log('Usuario logueado y contexto actualizado',isAuthenticated);
+      } else {
+        throw new Error(result.error || 'Error al procesar autenticación');
       }
 
-      console.log('✅ Autenticación exitosa');
-
-      // Guardar datos y actualizar contexto
-      login(backendData.user);
-      Alert.alert('¡Bienvenido!', `Hola ${backendData.user.name}`);
-
     } catch (error) {
-      console.error('❌ Error:', error.message);
-      Alert.alert('Error de autenticación', error.message || 'Intenta de nuevo');
-      setIsInitializing(false);
+      console.error('❌ Error en handleGoogleSuccess:', error);
+      Alert.alert(
+        'Error de autenticación', 
+        error.message || 'No se pudo completar el inicio de sesión'
+      );
     } finally {
       setLoading(false);
     }
   };
+  
+
+  const processGoogleSignIn = async (userData) => {
+    // // Enviar la información al backend (AQUÍ ES DONDE OCURRÍA EL ERROR 400)
+    console.log('📤 Enviando datos al backend:', userData);
+    console.log('📤 urlbackend ',process.env.EXPO_PUBLIC_API_URL);
+
+    // enviar datos al backend mediante axios 
+    const backendrequest = await axios.post(
+      `${process.env.EXPO_PUBLIC_API_URL}/auth/google`,
+      {
+        idToken: userData.idToken, // 👈 IMPORTANTE: Usar id_token, no accessToken
+        email: userData.email,
+        name: userData.name,
+       
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    console.log('✅ Respuesta del backend:', backendrequest.status);
+    console.log('✅ Datos del backend:', backendrequest.data);
+
+    return backendrequest.data;
+  }
+
+
 
   const handleGoogleSignIn = async () => {
     if (!request) {

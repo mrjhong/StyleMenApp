@@ -13,6 +13,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null); // Contiene { id, name, email }
     const [isLoading, setIsLoading] = useState(true); // Para la pantalla de carga inicial
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     // Cargar el estado inicial (Token & User Data)
     useEffect(() => {
@@ -36,7 +37,9 @@ export const AuthProvider = ({ children }) => {
     // Función para loguear (se llama desde LoginScreen)
     const login = (userData) => {
         // userData debe ser el objeto { id, name, email } que devuelve el backend
+        console.log('🔐 Usuario login0 ' );
         setUser(userData);
+        setIsAuthenticated(true);
     };
 
     // Función para desloguear (se llama desde ProfileScreen, por ejemplo)
@@ -58,7 +61,8 @@ export const AuthProvider = ({ children }) => {
         user,
         login,
         logout,
-        isAuthenticated: !!user, // Booleano: ¿Está logueado?
+        isAuthenticated, // Booleano: ¿Está logueado?
+        setIsAuthenticated
     };
 
     return (

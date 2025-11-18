@@ -1,16 +1,20 @@
 // src/navigation/RootNavigator.js (Nuevo Archivo)
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from '../screens/LoginScreen';
 import AppNavigator from './AppNavigator'; // Tu navegador de Tabs
 import { useAuth } from '../context/AuthContext'; // 👈 Usamos el hook de auth
-
+import { Alert } from 'react-native';
 const Stack = createStackNavigator();
 
 export default function RootNavigator() {
     // Obtenemos el estado de autenticación global
     const { isAuthenticated } = useAuth(); 
+
+    useEffect(() => {
+            Alert.alert("esta autenticad ?", isAuthenticated);
+    }, [isAuthenticated]);
 
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
